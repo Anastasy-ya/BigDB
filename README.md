@@ -1,73 +1,144 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# postgresqlProject
+_Изучение облачной базы данных и синтаксиса postgresql_
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+TypeScript - Nest.js - TypeORM - node-postgres
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+# Сервис работает с таблицей users размером 1млн и выше. 
+# Считает количество пользователей с "problems: true" и выставляет всем пользователям флаг "false"
 
-## Description
+## Ссылки
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+https://github.com/Anastasy-ya/postgresqlProject
+https://github.com/Anastasy-ya/history-log-users-server
+https://github.com/Anastasy-ya/BigDB
 
-## Installation
+## Используется облачная база данных postgresql neon.tech
 
-```bash
-$ npm install
+_Для подключения необходим .env файл в корневой директории приложения:_
+
+```
+USER=<your_login>
+
+HOST=<your-host>
+
+DATABASE=<db-name>
+
+PASSWORD=<password>
+
+PORT=3000
 ```
 
-## Running the app
 
-```bash
-# development
-$ npm run start
+Строка, содержащая данные для подключения, располагается в Dashboard панели управления
 
-# watch mode
-$ npm run start:dev
+```
+postgres://alex:AbC123dEf@ep-cool-darkness-123456.us-east-2.aws.neon.tech/dbname
+           ^    ^         ^                                               ^
+     role -|    |         |- hostname                                     |- database
+                |
+                |- password
 
-# production mode
-$ npm run start:prod
 ```
 
-## Test
+[Документация](https://neon.tech/docs/get-started-with-neon/connect-neon "Переход на сайт neon.tech")
 
-```bash
-# unit tests
-$ npm run test
+### Скрипт для создания SQL-таблицы и заполнения ее рандомными значениями: 
 
-# e2e tests
-$ npm run test:e2e
+```
+-- Создание таблицы users
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    first_name CHAR(3) NOT NULL,
+    last_name CHAR(3) NOT NULL,
+    age INT CHECK (age BETWEEN 18 AND 100),
+    gender CHAR(1) CHECK (gender IN ('m', 'f')),
+    problems BOOLEAN
+);
 
-# test coverage
-$ npm run test:cov
+-- Функция для генерации случайной строки заданной длины
+CREATE OR REPLACE FUNCTION random_string(length INT) RETURNS TEXT AS $$
+DECLARE
+    result TEXT := '';
+    i INT;
+BEGIN
+    FOR i IN 1..length LOOP
+        result := result || CHR(65 + FLOOR(RANDOM() * 26)::INT);
+    END LOOP;
+    RETURN result;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Функция для генерации случайного возраста
+CREATE OR REPLACE FUNCTION random_age() RETURNS INT AS $$
+BEGIN
+    RETURN FLOOR(RANDOM() * 83) + 18;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Функция для генерации случайного пола
+CREATE OR REPLACE FUNCTION random_gender() RETURNS CHAR(1) AS $$
+BEGIN
+    RETURN CASE WHEN RANDOM() < 0.5 THEN 'm' ELSE 'f' END;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Функция для генерации случайного значения для проблемы
+CREATE OR REPLACE FUNCTION random_problems() RETURNS BOOLEAN AS $$
+BEGIN
+    RETURN RANDOM() < 0.5;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Функция для вставки случайного пользователя
+CREATE OR REPLACE FUNCTION insert_random_person(num_users INT) RETURNS VOID AS $$
+DECLARE
+    i INT;
+BEGIN
+    FOR i IN 1..num_users LOOP
+        INSERT INTO users (first_name, last_name, age, gender, problems)
+        VALUES (random_string(3), random_string(3), random_age(), random_gender(), random_problems());
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Вставка пользователей
+SELECT insert_random_person(1000);
 ```
 
-## Support
+### Cкрипт для создания связанной таблицы с историей изменения первой таблицы
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```
+CREATE TABLE user_changes (
+  action_id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL,
+  action_date TIMESTAMP NOT NULL,
+  action VARCHAR(255) NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+    ON UPDATE CASCADE
+    ON DELETE CASCADE
+);
+```
 
-## Stay in touch
+## Запуск
+git clone git@github.com:Anastasy-ya/postgresqlProject.git
+<br>
+cd postgresqlProject
+<br>
+npm install
+<br>
+npm start
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## Проверка
 
-## License
+### reset problems:
 
-Nest is [MIT licensed](LICENSE).
+PATCH http://localhost:3000/users/reset-problems
+
+### 404:
+
+GET http://localhost:3000/sdfg
+
+## Планы по улучшению:
+ - Написать тесты
+ - Рефакторинг
+ - Валидация входных значений при помощи express-validator
