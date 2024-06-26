@@ -3,14 +3,16 @@ _Изучение облачной базы данных и синтаксиса
 
 TypeScript - Nest.js - TypeORM - node-postgres
 
-# Сервис работает с таблицей users размером 1млн и выше. 
-# Считает количество пользователей с "problems: true" и выставляет всем пользователям флаг "false"
+## Сервис работает с таблицей users размером 1млн и выше. Считает количество пользователей с "problems: true" и выставляет всем пользователям флаг "false"
 
 ## Ссылки
 
 https://github.com/Anastasy-ya/postgresqlProject
+<br>
 https://github.com/Anastasy-ya/history-log-users-server
+<br>
 https://github.com/Anastasy-ya/BigDB
+<br>
 
 ## Используется облачная база данных postgresql neon.tech
 
@@ -197,5 +199,4 @@ GET http://localhost:3000/sdfg
 
 ## Планы по улучшению:
  - Написать тесты
- - Рефакторинг
  - Валидация входных значений при помощи express-validator
