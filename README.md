@@ -1,4 +1,4 @@
-# postgresqlProject
+# BigDB
 _Изучение облачной базы данных и синтаксиса postgresql_
 
 TypeScript - Nest.js - TypeORM - node-postgres
@@ -181,21 +181,23 @@ CREATE TABLE person_changes (
 ## Запуск
 git clone git@github.com:Anastasy-ya/postgresqlProject.git
 <br>
-cd postgresqlProject
+cd bigdb
 <br>
 npm install
 <br>
+npm run build
 npm start
 
 ## Проверка
 
 ### reset problems:
+Возвраащает количество пользователей с Problems: true и меняет флаг на false
 
 PATCH http://localhost:3000/users/reset-problems
 
 ### 404:
 
-GET http://localhost:3000/sdfg
+GET http://localhost:3000/404
 
 ## Планы по улучшению:
  - Написать тесты
