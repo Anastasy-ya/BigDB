@@ -179,7 +179,7 @@ CREATE TABLE person_changes (
 ```
 
 ## Запуск
-git clone git@github.com:Anastasy-ya/postgresqlProject.git
+git clone git@github.com:Anastasy-ya/BigDB.git
 <br>
 cd bigdb
 <br>
